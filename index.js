@@ -42,7 +42,8 @@ const middleware = (protoFiles, grpcLocation, credentials = requiredGrpc.credent
   })
 
   const protos = protoFiles.map(p => {
-    const packageDefinition = include ? protoLoader.loadSync(p, { includeDirs: include }) : protoLoader.loadSync(p)
+    let options = {keepCase: true, defaults: true};
+    const packageDefinition = include ? protoLoader.loadSync(p, { includeDirs: include, ...options}) : protoLoader.loadSync(p, options)
     return grpc.loadPackageDefinition(packageDefinition)
   })
 
@@ -84,7 +85,7 @@ const middleware = (protoFiles, grpcLocation, credentials = requiredGrpc.credent
                 if (debug) console.log(colors.green(httpMethod.toUpperCase()), colors.blue(httpRule[httpMethod]))
                 router[httpMethod](convertUrl(httpRule[httpMethod]), (req, res) => {
                   const params = convertParams(req, httpRule[httpMethod])
-                  const meta = convertHeaders(req.headers, grpc)
+                  const meta = convertHeaders(req.headers, grpc, false)
                   if (debug) {
                     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
                     console.log(`GATEWAY: ${colors.yellow((new Date()).toISOString())} (${colors.cyan(ip)}): /${colors.blue(pkg.replace(/\./g, colors.white('.')))}.${colors.blue(svc)}/${colors.cyan(m.name)}(${colorize(params)})`)
@@ -226,11 +227,13 @@ const getParamsList = (req, url) => {
  * @param  {object} headers Headers: {name: value}
  * @return {meta}           grpc meta object
  */
-const convertHeaders = (headers, grpc) => {
+const convertHeaders = (headers, grpc, needConvertHeaders) => {
   grpc = grpc || requiredGrpc
   headers = headers || {}
   const metadata = new grpc.Metadata()
-  Object.keys(headers).forEach(h => { metadata.set(h, headers[h]) })
+  if (needConvertHeaders) {
+    Object.keys(headers).forEach(h => { metadata.set(h, headers[h]) })
+  }
   return metadata
 }
 

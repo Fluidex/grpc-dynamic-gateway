@@ -17,6 +17,9 @@ const argv = yargs.usage('Usage: $0 [options] DEFINITION.proto [DEFINITION2.prot
   .describe('port', 'The port to serve your JSON proxy on')
   .alias('port', 'p')
 
+  .default('host', process.env.HOST || '0.0.0.0')
+  .describe('host', 'The host to serve your JSON proxy on')
+
   .default('grpc', process.env.GRPC_HOST || 'localhost:50051')
   .describe('grpc', 'The host & port to connect to, where your gprc-server is running')
   .alias('grpc', 'g')
@@ -63,8 +66,8 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(argv.mountpoint, grpcGateway(argv._, argv.grpc, credentials, !argv.quiet, argv.include))
-app.listen(argv.port, () => {
+app.listen(argv.port, argv.host, () => {
   if (!argv.quiet) {
-    console.log(`Listening on http://localhost:${argv.port}, proxying to gRPC on ${argv.grpc}`)
+    console.log(`Listening on http://${argv.host}:${argv.port}, proxying to gRPC on ${argv.grpc}`)
   }
 })
