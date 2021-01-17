@@ -11,6 +11,7 @@ const path = require('path');
 const schema = require('protocol-buffers-schema')
 const colorize = require('json-colorizer')
 const yaml = require('js-yaml');
+const JSONLong = require('json-long');
 
 const supportedMethods = ['get', 'put', 'post', 'delete', 'patch'] // supported HTTP methods
 const paramRegex = /{(\w+)}/g // regex to find gRPC params in url
@@ -100,7 +101,8 @@ const middleware = (protoFiles, grpcLocation, credentials = requiredGrpc.credent
                         console.trace()
                         return res.status(500).json({ code: err.code, message: err.message })
                       }
-                      res.json(convertBody(ans, httpRule.body, httpRule[httpMethod]))
+                      res.setHeader('Content-Type', 'application/json');
+                      res.end(JSONLong.stringify(convertBody(ans, httpRule.body, httpRule[httpMethod])));
                     })
                   } catch (err) {
                     console.error(colors.red(`${svc}.${m.name}: `, err.message))
