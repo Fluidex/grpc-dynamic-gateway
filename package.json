@@ -10,7 +10,8 @@
     "test": "jest",
     "test:update": "npm test -- --updateSnapshot",
     "test:watch": "npm test -- --watch",
-    "release": "release-it -p -n"
+    "release": "release-it -p -n",
+    "docker": "docker buildx build --platform linux/amd64,linux/arm64 -t lispczz/grpc-dynamic-gateway ."
   },
   "repository": {
     "type": "git",
